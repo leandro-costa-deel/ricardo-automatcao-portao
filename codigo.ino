@@ -1,9 +1,19 @@
 #include <WiFi.h>
 #include <Espalexa.h>
 #include <AceButton.h>
+#include <ESP32Servo.h>
 using namespace ace_button;
 
 Espalexa espalexa;
+
+
+Servo myservo;  // create servo object to control a servo
+// 16 servo objects can be created on the ESP32
+
+int servoPos = 0;    // variable to store the servo position
+#define ServoPin = 16; // Recommended PWM GPIO pins on the ESP32 include 2,4,12-19,21-23,25-27,32-33 
+#define ServoPotPin = 34; // GPIO pin used to connect the potentiometer (analog in)
+#define ADC_Max = 4096; // This is the default ADC max value on the ESP32 (12 bit ADC width);
 
 // define the GPIO connected with Relays and switches
 #define RelayPin1 23  //D23
@@ -302,6 +312,18 @@ void setup()
   button7.init(SwitchPin7);
   button8.init(SwitchPin8);
 
+  // Allow allocation of all timers
+	ESP32PWM::allocateTimer(0);
+	ESP32PWM::allocateTimer(1);
+	ESP32PWM::allocateTimer(2);
+	ESP32PWM::allocateTimer(3);
+	myservo.setPeriodHertz(50);    // standard 50 hz servo
+	myservo.attach(ServoPin, 500, 2400); // attaches the servo on pin to the servo object
+
+	// using default min/max of 1000us and 2000us
+	// different servos may require different min/max settings
+	// for an accurate 0 to 180 sweep
+
 
   // Initialise wifi connection
   wifiConnected = connectWifi();
@@ -349,6 +371,16 @@ void loop()
   button6.check();
   button7.check();
   button8.check();
+}
+
+
+// TODO: Testar Valores para o Servo, Não sei qual é para fechado e qual é para aberto rsrsrs.
+void abrirPortao(){
+  myservo.write(0); 
+}
+
+void fecharPortao(){ 
+  myservo.write(ADC_Max); 
 }
 
 void button1Handler(AceButton* button, uint8_t eventType, uint8_t buttonState) {
