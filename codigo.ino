@@ -11,9 +11,9 @@ Servo myservo;  // create servo object to control a servo
 // 16 servo objects can be created on the ESP32
 
 int servoPos = 0;    // variable to store the servo position
-#define ServoPin  16; // Recommended PWM GPIO pins on the ESP32 include 2,4,12-19,21-23,25-27,32-33 
-#define ServoPotPin  34; // GPIO pin used to connect the potentiometer (analog in)
-#define ADC_Max  4096; // This is the default ADC max value on the ESP32 (12 bit ADC width);
+#define ServoPin  16 // Recommended PWM GPIO pins on the ESP32 include 2,4,12-19,21-23,25-27,32-33 
+#define ServoPotPin  34 // GPIO pin used to connect the potentiometer (analog in)
+#define ADC_Max  4096 // This is the default ADC max value on the ESP32 (12 bit ADC width);
 
 // define the GPIO connected with Relays and switches
 #define RelayPin1 23  //D23
@@ -319,6 +319,7 @@ void setup()
 	ESP32PWM::allocateTimer(3);
 	myservo.setPeriodHertz(50);    // standard 50 hz servo
 	myservo.attach(ServoPin, 500, 2400); // attaches the servo on pin to the servo object
+  myservo.write(0); //  Posição inicial como fechado...
 
 	// using default min/max of 1000us and 2000us
 	// different servos may require different min/max settings
@@ -345,22 +346,16 @@ void loop()
   {
     //Serial.print("WiFi Not Connected ");
     digitalWrite(wifiLed, LOW); //Turn off WiFi LED
+    wifiConnected = connectWifi(); // Tentar reconectar o wifi 
+    if(wifiConnected){
+      addDevices(); // Se for restabelecida add o dispositivel
+    }
   }
   else
   {
     //Serial.print("WiFi Connected  ");
-    digitalWrite(wifiLed, HIGH);
-    //Manual Switch Control
-    //WiFi Control
-    if (wifiConnected){
-      espalexa.loop();
-      delay(1);
-    }
-    else {
-      wifiConnected = connectWifi(); // Initialise wifi connection
-      if(wifiConnected){
-      addDevices();
-      }
+    digitalWrite(wifiLed, HIGH); // Liga o led wifi
+    espalexa.loop(); // Comandos alexa
     }
   }
   button1.check();
@@ -374,13 +369,13 @@ void loop()
 }
 
 
-// TODO: Testar Valores para o Servo, Não sei qual é para fechado e qual é para aberto rsrsrs.
+// TODO: Testar Valores para o Servo, Não sei qual é para fechado e qual é para aberto rsrsrs. (Done)
 void abrirPortao(){
-  myservo.write(0); 
+  myservo.write(90); // limite solicitado por ricardo
 }
 
 void fecharPortao(){ 
-  myservo.write(ADC_Max); 
+  myservo.write(0); // angulo para quando estiver fechado
 }
 
 void button1Handler(AceButton* button, uint8_t eventType, uint8_t buttonState) {
