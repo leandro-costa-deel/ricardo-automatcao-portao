@@ -11,9 +11,9 @@ Servo myservo;  // create servo object to control a servo
 // 16 servo objects can be created on the ESP32
 
 int servoPos = 0;    // variable to store the servo position
-#define ServoPin = 16; // Recommended PWM GPIO pins on the ESP32 include 2,4,12-19,21-23,25-27,32-33 
-#define ServoPotPin = 34; // GPIO pin used to connect the potentiometer (analog in)
-#define ADC_Max = 4096; // This is the default ADC max value on the ESP32 (12 bit ADC width);
+#define ServoPin  16; // Recommended PWM GPIO pins on the ESP32 include 2,4,12-19,21-23,25-27,32-33 
+#define ServoPotPin  34; // GPIO pin used to connect the potentiometer (analog in)
+#define ADC_Max  4096; // This is the default ADC max value on the ESP32 (12 bit ADC width);
 
 // define the GPIO connected with Relays and switches
 #define RelayPin1 23  //D23
