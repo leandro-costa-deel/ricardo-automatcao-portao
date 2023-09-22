@@ -48,7 +48,7 @@ String Device_4_Name = "Night Lamp";
 String Device_5_Name = "Studio Light";
 String Device_6_Name = "Outdoor Light";
 String Device_7_Name = "Kitchen Light";
-String Device_8_Name = "Room Light";
+String Device_8_Name = "Gate";
 
 // prototypes
 boolean connectWifi();
@@ -60,7 +60,7 @@ void thirdLightChanged(uint8_t brightness);
 void fourthLightChanged(uint8_t brightness);
 void fifthLightChanged(uint8_t brightness);
 void sixthLightChanged(uint8_t brightness);
-void senventhLightChanged(uint8_t brightness);
+void seventhLightChanged(uint8_t brightness);
 void eighthLightChanged(uint8_t brightness);
 
 ButtonConfig config1;
@@ -199,16 +199,11 @@ void seventhLightChanged(uint8_t brightness)
 
 void eighthLightChanged(uint8_t brightness)
 {
-  //Control the device
-  if (brightness == 255)
-    {
-      digitalWrite(RelayPin8, LOW);
-      Serial.println("Device8 ON");
-    }
-  else
-  {
-    digitalWrite(RelayPin8, HIGH);
-    Serial.println("Device8 OFF");
+  Serial.println("Portão Changed");
+  if(brightness > 0) {
+    abrirPortao();
+  } else {
+    fecharPortao();
   }
 }
 
