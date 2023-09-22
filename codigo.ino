@@ -7,12 +7,10 @@ using namespace ace_button;
 Espalexa espalexa;
 
 
+boolean isPortaoFechado = true;
 Servo myservo;  // create servo object to control a servo
 // 16 servo objects can be created on the ESP32
 
-int servoPos = 0;    // variable to store the servo position
-#define ServoPin  16 // Recommended PWM GPIO pins on the ESP32 include 2,4,12-19,21-23,25-27,32-33 
-#define ServoPotPin  34 // GPIO pin used to connect the potentiometer (analog in)
 #define ADC_Max  4096 // This is the default ADC max value on the ESP32 (12 bit ADC width);
 
 // define the GPIO connected with Relays and switches
@@ -37,6 +35,7 @@ int servoPos = 0;    // variable to store the servo position
 #define wifiLed    2   //D2
 
 // WiFi Credentials
+boolean isWifiEnabled = false; // Nao tenho wifi no simulador
 const char* ssid = "WiFi Name";
 const char* password = "WiFi Password";
 
@@ -80,14 +79,14 @@ AceButton button7(&config7);
 ButtonConfig config8;
 AceButton button8(&config8);
 
-void handleEvent1(AceButton*, uint8_t, uint8_t);
-void handleEvent2(AceButton*, uint8_t, uint8_t);
-void handleEvent3(AceButton*, uint8_t, uint8_t);
-void handleEvent4(AceButton*, uint8_t, uint8_t);
-void handleEvent5(AceButton*, uint8_t, uint8_t);
-void handleEvent6(AceButton*, uint8_t, uint8_t);
-void handleEvent7(AceButton*, uint8_t, uint8_t);
-void handleEvent8(AceButton*, uint8_t, uint8_t);
+void button1Handler(AceButton*, uint8_t, uint8_t);
+void button2Handler(AceButton*, uint8_t, uint8_t);
+void button3Handler(AceButton*, uint8_t, uint8_t);
+void button4Handler(AceButton*, uint8_t, uint8_t);
+void button5Handler(AceButton*, uint8_t, uint8_t);
+void button6Handler(AceButton*, uint8_t, uint8_t);
+void button7Handler(AceButton*, uint8_t, uint8_t);
+void button8Handler(AceButton*, uint8_t, uint8_t);
 
 boolean wifiConnected = false;
 
@@ -200,7 +199,7 @@ void seventhLightChanged(uint8_t brightness)
 void eighthLightChanged(uint8_t brightness)
 {
   Serial.println("Portão Changed");
-  if(brightness > 0) {
+  if(isPortaoFechado) {
     abrirPortao();
   } else {
     fecharPortao();
@@ -287,7 +286,7 @@ void setup()
   digitalWrite(RelayPin5, HIGH);
   digitalWrite(RelayPin6, HIGH);
   digitalWrite(RelayPin7, HIGH);
-  digitalWrite(RelayPin8, HIGH);
+  // digitalWrite(RelayPin8, HIGH);
 
   config1.setEventHandler(button1Handler);
   config2.setEventHandler(button2Handler);
@@ -313,8 +312,8 @@ void setup()
 	ESP32PWM::allocateTimer(2);
 	ESP32PWM::allocateTimer(3);
 	myservo.setPeriodHertz(50);    // standard 50 hz servo
-	myservo.attach(ServoPin, 500, 2400); // attaches the servo on pin to the servo object
-  myservo.write(0); //  Posição inicial como fechado...
+	myservo.attach(RelayPin8, 500, 2400); // attaches the servo on pin to the servo object
+  fecharPortao();
 
 	// using default min/max of 1000us and 2000us
 	// different servos may require different min/max settings
@@ -322,36 +321,23 @@ void setup()
 
 
   // Initialise wifi connection
-  wifiConnected = connectWifi();
+  if(isWifiEnabled) {
+    wifiConnected = connectWifi();
 
-  if (wifiConnected)
-  {
-    addDevices();
-  }
-  else
-  {
-    Serial.println("Cannot connect to WiFi. So in Manual Mode");
-    delay(1000);
+    if (wifiConnected)
+    {
+      addDevices();
+    }
+    else
+    {
+      Serial.println("Cannot connect to WiFi. So in Manual Mode");
+      delay(1000);
+    }
   }
 }
 
-void loop()
-{
-   if (WiFi.status() != WL_CONNECTED)
-  {
-    //Serial.print("WiFi Not Connected ");
-    digitalWrite(wifiLed, LOW); //Turn off WiFi LED
-    wifiConnected = connectWifi(); // Tentar reconectar o wifi 
-    if(wifiConnected){
-      addDevices(); // Se for restabelecida add o dispositivel
-    }
-  }
-  else
-  {
-    //Serial.print("WiFi Connected  ");
-    digitalWrite(wifiLed, HIGH); // Liga o led wifi
-    espalexa.loop(); // Comandos alexa
-  }
+void loop(){
+
   button1.check();
   button2.check();
   button3.check();
@@ -360,16 +346,44 @@ void loop()
   button6.check();
   button7.check();
   button8.check();
+
+  if(isWifiEnabled) {
+    if (WiFi.status() != WL_CONNECTED)
+    {
+      //Serial.print("WiFi Not Connected ");
+      digitalWrite(wifiLed, LOW); //Turn off WiFi LED
+      wifiConnected = connectWifi(); // Tentar reconectar o wifi 
+      if(wifiConnected){
+        addDevices(); // Se for restabelecida add o dispositivel
+      }
+    } else {
+      //Serial.print("WiFi Connected  ");
+      digitalWrite(wifiLed, HIGH); // Liga o led wifi
+      espalexa.loop(); // Comandos alexa
+    }
+  }
+}
+
+void moverServo(int pos) {
+  Serial.print("Mover Servo para:");
+  Serial.println(pos);
+  // myservo.write(map(pos, 0, ADC_Max, 0, 180)); // Isso seria para mapear a entrada de um potenciometro, 0..1024
+  myservo.write(pos);
+  delay(200);  // aguarda o servo mover
 }
 
 
 // TODO: Testar Valores para o Servo, Não sei qual é para fechado e qual é para aberto rsrsrs. (Done)
 void abrirPortao(){
-  myservo.write(90); // limite solicitado por ricardo
+  Serial.println("Abrir Portão");
+  moverServo(90);
+  isPortaoFechado = false;
 }
 
 void fecharPortao(){ 
-  myservo.write(0); // angulo para quando estiver fechado
+  Serial.println("Fechar Portão");
+  moverServo(0);
+  isPortaoFechado = true;
 }
 
 void button1Handler(AceButton* button, uint8_t eventType, uint8_t buttonState) {
@@ -493,17 +507,22 @@ void button7Handler(AceButton* button, uint8_t eventType, uint8_t buttonState) {
 
 void button8Handler(AceButton* button, uint8_t eventType, uint8_t buttonState) {
   Serial.println("EVENT8");
-  EspalexaDevice* d8 = espalexa.getDevice(7);
+  // EspalexaDevice* d8 = espalexa.getDevice(7);
   switch (eventType) {
     case AceButton::kEventPressed:
-      Serial.println("kEventPressed");
-      d8->setPercent(100);
-      digitalWrite(RelayPin8, LOW);
+      // Serial.println("kEventPressed");
+      // d8->setPercent(100);
+      // digitalWrite(RelayPin8, LOW);
       break;
     case AceButton::kEventReleased:
-      Serial.println("kEventReleased");
-      d8->setPercent(0);
-      digitalWrite(RelayPin8, HIGH);
+      // Serial.println("kEventReleased");
+      // d8->setPercent(0);
+      // digitalWrite(RelayPin8, HIGH);
+      if(isPortaoFechado) {
+        abrirPortao();
+      } else {
+        fecharPortao();
+      }
       break;
   }
 }
