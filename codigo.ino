@@ -356,7 +356,6 @@ void loop()
     //Serial.print("WiFi Connected  ");
     digitalWrite(wifiLed, HIGH); // Liga o led wifi
     espalexa.loop(); // Comandos alexa
-    }
   }
   button1.check();
   button2.check();
